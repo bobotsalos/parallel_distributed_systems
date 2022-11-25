@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define SIZE 5
+#define SIZE 7
 
 struct queue {
     int items[SIZE];
@@ -36,7 +36,7 @@ int dequeue(struct queue *q) {
     int item;
     if(isEmpty(q)) {
         printf("Queue is empty!");
-        exit(1);
+        return 0;
     } else {
         item = q->items[q->front];
         q->front++;
@@ -53,7 +53,7 @@ void printQueue(struct queue *q) {
         printf("Queue is empty!");
     } else {
         printf("\nQueue contains: ");
-        for(int i = q->front; i < q->rear; i++) {
+        for(int i = q->front; i < q->rear+1; i++) {
             printf("%d ", q->items[i]);
         }
     }
@@ -95,34 +95,48 @@ int** calcTraspose(int **graph) {
     return tGraph;
 }
 
+
+// Coloring Algorithm
 int* coloringAlgorithm(int** graph) {
     struct queue *q = createQueue();
     int colors[SIZE];
-    int scc_ids[SIZE];
+    int visited[SIZE];
+    int *scc_ids = malloc(SIZE * sizeof(int));
     int** tGraph = calcTraspose(graph);
 
     for(int i = 0; i < SIZE; i++) {
-        q->items[i] = i;
+        enqueue(q, i);
         scc_ids[i] = -1;
     }
 
     while(!isEmpty(q)){
-        for(int i = 0; i < SIZE; i++) {
+        printf("\nCOLORS: ");
+        for(int i = q->front; i < q->rear+1; i++) {
             colors[i] = i;
+            visited[i] = false;
+            printf("%d ", colors[i]);
         }
+        printf("\n");
 
-        int color_changed = true;
+        bool color_changed = true;
         while(color_changed) {
+            // printf("%d", color_changed);
             color_changed = false;
-            for(int v = 0; v < SIZE; v++) {
+            for(int v = q->front; v < q->rear+1; v++) {
+                visited[v] = true;
                 // pass color to vertices v points
                 int *childs = graph[v];
                 for(int i = 0; i < SIZE; i++) {
-                    if(childs[i] == 1) {
+                    if(childs[i] == 1 && visited[i] == false) {
                         colors[i] = colors[v];
                         color_changed = true;
                     }
                 }
+                printf("\nCOLORS: ");
+                for(int i = q->front; i < q->rear+1; i++ ){
+                    printf("%d ", colors[i]);
+                }
+                printf("\n");
                 int *predecessors = tGraph[v];
                 for(int u = 0; u < SIZE; u++) {
                     if(predecessors[u] == 1) {
@@ -135,29 +149,43 @@ int* coloringAlgorithm(int** graph) {
             }
         }
 
-        for(int v = 0; v < SIZE; v++) {
+        for(int v = q->front; v < q->rear+1; v++) {
             if(colors[v] == v) {
                 int scc_color = colors[v];
                 struct queue *bfs_q = createQueue();
                 enqueue(bfs_q, v);
                 
+                scc_ids[v] = scc_color;
                 while(!isEmpty(bfs_q)) {
-                    printQueue(bfs_q);
+                    // printQueue(bfs_q);
                     int curr_vertex = dequeue(bfs_q);
 
                     int *predecessors = tGraph[curr_vertex];
                     for(int u = 0; u < SIZE; u++) {
                         if(predecessors[u] == 1) {
                             if(scc_ids[u] == -1 && colors[u] == scc_color) {
+                                printf("%d ", u);
                                 enqueue(bfs_q ,u);
                                 scc_ids[u] = scc_color;
                             }
                         }
                     }
+                    printf("\n");
                 }
             }
         }
+        printf("SCC: ");
+        for(int i = q->front; i < q->rear+1; i++) {
+            printf("%d ", scc_ids[i]);
+            if(scc_ids[i] != -1) {
+                dequeue(q);
+            }
+        }
+        printQueue(q);
+        printf("\n");
     }
+
+    return scc_ids;
 }
 
 int main() {
@@ -168,18 +196,24 @@ int main() {
             graph[i][j] = 0;
         }
     }
-    graph[0][2] = 1;
-    graph[0][3] = 1;
-    graph[1][0] = 1;
-    graph[2][1] = 1;
+    graph[0][1] = 1;
+    graph[1][2] = 1;
+    graph[1][4] = 1;
+    graph[1][6] = 1;
+    graph[2][3] = 1;
+    graph[3][2] = 1;
     graph[3][4] = 1;
+    graph[3][5] = 1;
+    graph[4][5] = 1;
+    graph[5][4] = 1;
+    graph[6][0] = 1;
 
-    coloringAlgorithm(graph);
-
+    int *scc_colors = coloringAlgorithm(graph);
+    printf("\nhello: %d\n", scc_colors[0]);
+    for(int i = 0; i < SIZE; i++){
+        printf("%d ", scc_colors[i]);
+    }
     // bool visited[SIZE];
-    // for(int i = 0; i < SIZE; i++){
-    //     visited[i] = false;
-    // }
 
     // BFS(0, visited, graph);
     return 0;
