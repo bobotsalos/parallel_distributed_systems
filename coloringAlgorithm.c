@@ -274,6 +274,15 @@ int main(int argc, char *argv[]) {
     int sccs = coloringAlgorithm(mtx_csr, mtx_csc, N);
     printf("%d", sccs);
 
+    free(mtx_csr[0]);
+    free(mtx_csr[1]);
+    free(mtx_csc[0]);
+    free(mtx_csc[1]);
+    free(mtx_csc);
+    free(mtx_csr);
+    free(I);
+    free(J);
+
 
     return 0;
 }
