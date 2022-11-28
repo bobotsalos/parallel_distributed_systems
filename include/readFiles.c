@@ -72,8 +72,8 @@ int** read_dot_mtx(FILE* f, MM_typecode matcode) {
 }
 
 int** graph_csc(int* row_coo, int* col_coo,int nnz,int n) {
-    int *row_csc = malloc(nnz * sizeof(int));
-    int *col_csc = malloc((n+1) * sizeof(int));
+    int *row_csc = (int*)malloc(nnz * sizeof(int));
+    int *col_csc = (int*)malloc((n+1) * sizeof(int));
 
     // initialize to 0
     for(int i = 0; i < n+1; i++) {
@@ -110,7 +110,7 @@ int** graph_csc(int* row_coo, int* col_coo,int nnz,int n) {
         last = temp;
     }
 
-    int** graph = malloc(2 * sizeof(int*));
+    int** graph = (int**)malloc(2 * sizeof(int*));
     graph[0] = row_csc;
     graph[1] = col_csc;
 
@@ -118,8 +118,8 @@ int** graph_csc(int* row_coo, int* col_coo,int nnz,int n) {
 }
 
 int** graph_csr(int *row_coo, int *col_coo, int nnz, int N) {
-    int *row_csr = malloc((N+1) * sizeof(int));
-    int *col_csr = malloc(nnz * sizeof(int));
+    int *row_csr = (int*)malloc((N+1) * sizeof(int));
+    int *col_csr = (int*)malloc(nnz * sizeof(int));
 
     // initialize to 0
     for(int i = 0; i < N+1; i++) {
@@ -156,7 +156,7 @@ int** graph_csr(int *row_coo, int *col_coo, int nnz, int N) {
         last = temp;
     }
 
-    int** graph = malloc(2 * sizeof(int*));
+    int** graph = (int**)malloc(2 * sizeof(int*));
     graph[0] = row_csr;
     graph[1] = col_csr;
 

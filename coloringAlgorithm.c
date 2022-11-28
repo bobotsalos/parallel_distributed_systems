@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-
 struct queue {
     int *items;
     int front;
@@ -12,8 +11,8 @@ struct queue {
 
 struct queue* createQueue(int N) {
     printf("create\n");
-    struct queue* q = malloc(sizeof(struct queue));
-    q->items = malloc(N * sizeof(int));
+    struct queue* q = (struct queue*)malloc(sizeof(struct queue));
+    q->items = (int*)malloc(N * sizeof(int));
     q->front=-1;
     q->rear=-1;
     return q;
@@ -103,7 +102,7 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
     struct queue *q = createQueue(N);
     int colors[N];
     int visited[N];
-    int *scc_ids = malloc(N * sizeof(int));
+    int *scc_ids = (int*)malloc(N * sizeof(int));
     // int** tGraph = calcTraspose(graph);
 
     for(int i = 0; i < N; i++) {
@@ -142,11 +141,6 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
                         color_changed = true;
                     }
                 }
-                // printf("COLORS: ");
-                // for(int i = q->front; i < q->rear+1; i++ ){
-                //     printf("%d ", colors[q->items[i]]);
-                // }
-                // printf("\n");
 
                 int pred_start = mtx_csc[1][v];
                 int pred_end = mtx_csc[1][v + 1];
@@ -159,6 +153,11 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
                         color_changed = true;
                     }
                 }
+                // printf("COLORS: ");
+                // for(int i = q->front; i < q->rear+1; i++ ){
+                //     printf("%d ", colors[q->items[i]]);
+                // }
+                // printf("\n");
             }
         }
 
@@ -217,12 +216,23 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
     // }
 
     int cnt = 0;
-    for(int i = 0, temp = -1; i < N; i++) {
-        if(scc_ids[i] != temp){
+    int *scc_cnt = (int*)malloc(N * sizeof(int));
+    for(int i = 0; i < N; i++) {
+        scc_cnt[i] = 0;
+    }
+    for(int i = 0; i < N; i++) {
+        if(scc_cnt[scc_ids[i]] == 0) {
+            scc_cnt[scc_ids[i]]++;
             cnt++;
-            temp = scc_ids[i];
+        } else {
+            scc_cnt[scc_ids[i]]++;
         }
     }
+    // for(int i = 0; i < N; i++) {
+    //     if(scc_cnt[scc_ids[i]] == 1) {
+    //         cnt--;
+    //     }
+    // }
 
     return cnt;
 }
@@ -231,7 +241,7 @@ int main(int argc, char *argv[]) {
     MM_typecode matcode;
     FILE *f;
     int M, N, nz;   
-    int i, *I, *J;
+    int i, *I, *J, *val;
     int ret_code;
 
     if (argc < 2)
@@ -257,20 +267,21 @@ int main(int argc, char *argv[]) {
     /* reserve memory for matrices */
     // int nz = 9;
     // int N = 8;
-    I = malloc(nz * sizeof(int));
-    J = malloc(nz * sizeof(int));
+    I = (int*)malloc(nz * sizeof(int));
+    J = (int*)malloc(nz * sizeof(int));
+    val = (int*)malloc(nz * sizeof(int));
 
     for (int i = 0; i < nz; i++)
     {
-        fscanf(f, "%d %d %*s\n", &I[i], &J[i]); /* don't read values (or weights) */
+        fscanf(f, "%d %d %d\n", &I[i], &J[i], &val[i]); /* don't read values (or weights) */
         I[i]--;  /* adjust from 1-based to 0-based */
         J[i]--;  /* adjust from 1-based to 0-based */
     }
 
     if (f != stdin) fclose(f);
     // printf("N: %d", N);
-    int **mtx_csr = graph_csr(I, J, nz, N);
-    int **mtx_csc = graph_csc(I, J, nz, N);
+    int **mtx_csr = graph_csr((int*)I, (int*)J, nz, N);
+    int **mtx_csc = graph_csc((int*)I, (int*)J, nz, N);
     int sccs = coloringAlgorithm(mtx_csr, mtx_csc, N);
     printf("%d", sccs);
 
