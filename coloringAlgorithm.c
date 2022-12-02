@@ -10,7 +10,7 @@ struct queue {
 };
 
 struct queue* createQueue(int N) {
-    printf("create\n");
+    // printf("create\n");
     struct queue* q = (struct queue*)malloc(sizeof(struct queue));
     q->items = (int*)malloc(N * sizeof(int));
     q->front=-1;
@@ -42,7 +42,7 @@ int dequeue(struct queue *q) {
         item = q->items[q->front];
         q->front++;
         if(q->front > q->rear) {
-            printf("Resseting queue\n");
+            // printf("Resseting queue\n");
             q->front = q->rear = -1;
         }
     }
@@ -100,22 +100,23 @@ void printQueue(struct queue *q) {
 // Coloring Algorithm
 int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
     struct queue *q = createQueue(N);
-    int colors[N];
-    int visited[N];
+    int *colors = (int*) malloc(N * sizeof(int));
+    int *visited = (int*) malloc(N * sizeof(int));
     int *scc_ids = (int*)malloc(N * sizeof(int));
-    // int** tGraph = calcTraspose(graph);
 
     for(int i = 0; i < N; i++) {
         enqueue(q, N, i);
         scc_ids[i] = -1;
+        visited[i] = false;
     }
 
+    // printQueue(q);
     while(!isEmpty(q)){
         // printf("\nCOLORS: ");
         for(int i = q->front; i < q->rear+1; i++) {
             int v = q->items[i];
             colors[v] = v;
-            visited[v] = false;
+            // visited[v] = false;
             // printf("%d ", colors[v]);
         }
         // printf("\n");
@@ -123,16 +124,15 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
         bool color_changed = true;
         while(color_changed) {
             color_changed = false;
-            for(int i = q->front; i < q->rear+1; i++) {
+            for(int i = 0; i < q->rear+1; i++) {
                 int v = q->items[i];
-                // printf("v: %d\n", v);
                 visited[v] = true;
+                // printf("v: %d\n", v);
+
                 // pass color to vertices v points
                 int dsc_start = mtx_csr[0][v];
                 int dsc_end = mtx_csr[0][v + 1];
-
                 // printf("start: %d end: %d\n", dsc_start, dsc_end);
-                // int *descendants = graph[v];
                 for(int dsc_id = dsc_start; dsc_id < dsc_end; dsc_id++) {
                     int dsc = mtx_csr[1][dsc_id];
                     // printf("dsc: %d\n", dsc);
@@ -144,8 +144,6 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
 
                 int pred_start = mtx_csc[1][v];
                 int pred_end = mtx_csc[1][v + 1];
-                
-                // int *predecessors = tGraph[v];
                 for(int u_id = pred_start; u_id < pred_end; u_id++) {
                     int u = mtx_csc[0][u_id];
                     if(scc_ids[u] == -1 && colors[v] > colors[u]) {
@@ -161,7 +159,7 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
             }
         }
 
-        for(int i = q->front; i < q->rear+1; i++) {
+        for(int i = 0; i < q->rear+1; i++) {
             int v = q->items[i];
             if(colors[v] == v) {
                 int scc_color = colors[v];
@@ -175,7 +173,6 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
 
                     int pred_start = mtx_csc[1][curr_vertex];
                     int pred_end = mtx_csc[1][curr_vertex + 1];
-                    // int *predecessors = tGraph[curr_vertex];
                     for(int u_id = pred_start; u_id < pred_end; u_id++) {
                         int u = mtx_csc[0][u_id];
                         if(scc_ids[u] == -1 && colors[u] == scc_color) {
@@ -189,27 +186,28 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
                 }
             }
         }
-        for(int i = q->front; i < q->rear+1; i++) {
+        for(int i = 0; i < q->rear+1; i++) {
             int v = q->items[i];
             if(scc_ids[v] != -1) {
-                if(v == q->front) {
+                if(i == q->front) {
                     q->front++;
-                } else if(v == q->rear) {
+                    // printf("front: %d", q->front);
+                } else if(i == q->rear) {
                     q->rear--;
                 } else {
-                    for(int j = v; j < q->rear; j++) {
+                    for(int j = i; j < q->rear; j++) {
+                        // printf("v: %d\n", v);
                         q->items[j] = q->items[j+1];
                     }
                     q->rear--;
                 }
                 if(q->front > q->rear) {
-                    printf("Resseting queue\n");
+                    // printf("Resseting queue\n");
                     q->front = q->rear = -1;
                 }
             }
         }
-        // printf("\n");
-        // printQueue(q);
+        // printf("\n");;
     }
     // for(int i = 0; i < N; i++) {
     //     printf("%d ", scc_ids[i]);
@@ -228,14 +226,80 @@ int coloringAlgorithm(int **mtx_csr, int **mtx_csc, int N) {
             scc_cnt[scc_ids[i]]++;
         }
     }
+    //******* TRIM na kanoume prin to proccess ******************/
+    
     // for(int i = 0; i < N; i++) {
     //     if(scc_cnt[scc_ids[i]] == 1) {
     //         cnt--;
     //     }
     // }
+    // printf("%d ", scc_ids[i]);
+
+    free(scc_cnt);
+    free(scc_ids);
+    free(q->items);
+    free(q);
 
     return cnt;
 }
+// #define nz 11
+// #define M 7
+// #define N 7
+
+// int main()
+// {
+//     MM_typecode matcode;
+//     int *I = (int*)malloc(nz * sizeof(int));
+//     int *J = (int*)malloc(nz * sizeof(int));                       
+    
+//     I[0] = 5;
+//     I[1] = 0;
+//     I[2] = 1;
+//     I[3] = 3;
+//     I[4] = 5;
+//     I[5] = 2;
+//     I[6] = 1;
+//     I[7] = 6;
+//     I[8] = 1;
+//     I[9] = 3;
+//     I[10] = 4;
+
+//     J[0] = 0;
+//     J[1] = 1;
+//     J[2] = 2;
+//     J[3] = 2;
+//     J[4] = 2;
+//     J[5] = 3;
+//     J[6] = 4;
+//     J[7] = 4;
+//     J[8] = 5;
+//     J[9] = 6;
+//     J[10] = 6;
+
+//     FILE *fptr;
+//     fptr = fopen("./graph.mtx", "w+");
+//     if(fptr == NULL) {
+//         printf("Error!");   
+//         exit(1);  
+//     }
+
+//     mm_initialize_typecode(&matcode);
+//     mm_set_matrix(&matcode);
+//     mm_set_coordinate(&matcode);
+//     mm_set_real(&matcode);
+
+//     mm_write_banner(fptr, matcode); 
+//     mm_write_mtx_crd_size(fptr, M, N, nz);
+//     /* NOTE: matrix market files use 1-based indices, i.e. first element
+//       of a vector has index 1, not 0.  */
+
+
+//     for (int i=0; i<nz; i++)
+//         fprintf(fptr, "%d %d\n", I[i]+1, J[i]+1);
+
+//     fclose(fptr);
+// 	return 0;
+// }
 
 int main(int argc, char *argv[]) {
     MM_typecode matcode;
@@ -265,35 +329,60 @@ int main(int argc, char *argv[]) {
     if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &nz)) != 0)
         exit(1);
     /* reserve memory for matrices */
-    // int nz = 9;
-    // int N = 8;
+    // int nz = 11;
+    // int N = 7;
     I = (int*)malloc(nz * sizeof(int));
     J = (int*)malloc(nz * sizeof(int));
     val = (int*)malloc(nz * sizeof(int));
 
     for (int i = 0; i < nz; i++)
     {
-        fscanf(f, "%d %d %d\n", &I[i], &J[i], &val[i]); /* don't read values (or weights) */
+        fscanf(f, "%d %d\n", &I[i], &J[i]); /* don't read values (or weights) */
         I[i]--;  /* adjust from 1-based to 0-based */
         J[i]--;  /* adjust from 1-based to 0-based */
     }
 
-    if (f != stdin) fclose(f);
-    // printf("N: %d", N);
+    if (f != stdin) 
+        fclose(f);
+
+
+    // I[0] = 5;
+    // I[1] = 0;
+    // I[2] = 1;
+    // I[3] = 3;
+    // I[4] = 5;
+    // I[5] = 2;
+    // I[6] = 1;
+    // I[7] = 6;
+    // I[8] = 1;
+    // I[9] = 3;
+    // I[10] = 4;
+
+    // J[0] = 0;
+    // J[1] = 1;
+    // J[2] = 2;
+    // J[3] = 2;
+    // J[4] = 2;
+    // J[5] = 3;
+    // J[6] = 4;
+    // J[7] = 4;
+    // J[8] = 5;
+    // J[9] = 6;
+    // J[10] = 6;
+    
     int **mtx_csr = graph_csr((int*)I, (int*)J, nz, N);
     int **mtx_csc = graph_csc((int*)I, (int*)J, nz, N);
     int sccs = coloringAlgorithm(mtx_csr, mtx_csc, N);
-    printf("%d", sccs);
+    printf("sccs: %d\n", sccs);
 
-    free(mtx_csr[0]);
     free(mtx_csr[1]);
-    free(mtx_csc[0]);
+    free(mtx_csr[0]);
     free(mtx_csc[1]);
+    free(mtx_csc[0]);
     free(mtx_csc);
     free(mtx_csr);
     free(I);
     free(J);
-
 
     return 0;
 }

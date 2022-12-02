@@ -1,6 +1,7 @@
 #include "readFiles.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "mmio.h"
 
 void print_graph(MM_typecode matcode, int M, int N, int nz, int** graph) {
@@ -71,12 +72,12 @@ int** read_dot_mtx(FILE* f, MM_typecode matcode) {
     return graph;
 }
 
-int** graph_csc(int* row_coo, int* col_coo,int nnz,int n) {
+int** graph_csc(int* row_coo, int* col_coo, int nnz, int N) {
     int *row_csc = (int*)malloc(nnz * sizeof(int));
-    int *col_csc = (int*)malloc((n+1) * sizeof(int));
+    int *col_csc = (int*)malloc((N+1) * sizeof(int));
 
     // initialize to 0
-    for(int i = 0; i < n+1; i++) {
+    for(int i = 0; i < N+1; i++) {
         col_csc[i] = 0;
     }
 
@@ -86,12 +87,12 @@ int** graph_csc(int* row_coo, int* col_coo,int nnz,int n) {
     }
 
     // cumulative sum
-    for(int i = 0, cum_sum=0; i < n; i++) {
+    for(int i = 0, cum_sum=0; i < N; i++) {
         int temp = col_csc[i];
         col_csc[i] = cum_sum;
         cum_sum += temp;
     }
-    col_csc[n] = nnz;
+    col_csc[N] = nnz;
 
     // copy row indicies to the correct place
     for(int i = 0; i < nnz; i++) {
@@ -104,13 +105,15 @@ int** graph_csc(int* row_coo, int* col_coo,int nnz,int n) {
     }
 
     // revert the csc column vector
-    for(int i = 0, last = 0; i < n; i++) {
+    for(int i = 0, last = 0; i < N; i++) {
         int temp = col_csc[i];
         col_csc[i] = last;
         last = temp;
     }
 
     int** graph = (int**)malloc(2 * sizeof(int*));
+    graph[0] = (int*)malloc(nnz * sizeof(int));
+    graph[1] = (int*)malloc((N+1) * sizeof(int));
     graph[0] = row_csc;
     graph[1] = col_csc;
 
@@ -132,13 +135,12 @@ int** graph_csr(int *row_coo, int *col_coo, int nnz, int N) {
     }
 
     // cumulative sum
-    for(int i = 0, cum_sum=0; i < N; i++) {
+    for(int i = 0, cum_sum = 0; i < N; i++) {
         int temp = row_csr[i];
         row_csr[i] = cum_sum;
         cum_sum += temp;
     }
     row_csr[N] = nnz;
-
     // copy col indicies to the correct place
     for(int i = 0; i < nnz; i++) {
         int row_l = row_coo[i];
@@ -157,6 +159,8 @@ int** graph_csr(int *row_coo, int *col_coo, int nnz, int N) {
     }
 
     int** graph = (int**)malloc(2 * sizeof(int*));
+    graph[0] = (int*)malloc((N+1) * sizeof(int));
+    graph[1] = (int*)malloc(nnz * sizeof(int));
     graph[0] = row_csr;
     graph[1] = col_csr;
 
